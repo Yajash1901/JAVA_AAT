@@ -115,8 +115,8 @@ public class Minesweeper7 {
 
         revealed[r][c] = true;
 
-        // count this reveal if safe
-        int count = (board[r][c] != ' ') ? 1 : 1;
+        // count this reveal if safe (every revealed safe cell counts once)
+        int count = 1;
 
         // if empty space, reveal neighbors
         if (board[r][c] == ' ') {
