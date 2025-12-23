@@ -1,134 +1,164 @@
-import java.util.*;
+import java.util.Scanner;
+import java.util.Random;
+import java.util.HashSet;
+import java.util.Set;
 
-// Interface for game structure
-interface Game {
-    void start();
-    void play();
-    void end();
-}
+/**
+ * A simple Hangman Game demonstrating basic OOP concepts:
+ * - Encapsulation: State is managed within classes.
+ * - Abstraction: Logic is separated from display and word selection.
+ */
 
-// Base game class
-abstract class BaseGame implements Game {
-    protected Scanner sc = new Scanner(System.in);
-    protected String generatedPassword;
-    protected int score = 0;
-    protected String[] hints;
+// Class responsible for word selection
+class WordProvider {
+    private static final String[] WORDS = {
+            "JAVA", "PROGRAMMING", "COMPUTER", "ALGORITHM", "COMPILER",
+            "OBJECT", "CLASS", "INHERITANCE", "POLYMORPHISM", "ENCAPSULATION"
+    };
 
-    public BaseGame(String password, String[] hints) {
-        this.generatedPassword = password;
-        this.hints = hints;
-    }
-
-    public void start() {
-        System.out.println("====== PASSWORD CRACKER GAME ======\n");
-        System.out.println("Game Rules:");
-        System.out.println("1. You will guess the password character by character.");
-        System.out.println("2. Each character has a unique hint.");
-        System.out.println("3. Score +1 for each correct character.");
-        System.out.println("------------------------------------\n");
-    }
-}
-
-// Password game class (inheritance)
-class PasswordGame extends BaseGame {
-
-    public PasswordGame(String password, String[] hints) {
-        super(password, hints);
-    }
-
-    @Override
-    public void play() {
-        StringBuilder userPassword = new StringBuilder();
-
-        for (int i = 0; i < generatedPassword.length(); i++) {
-            System.out.println("Hint for character " + (i + 1) + ": " + hints[i]);
-            System.out.print("Your guess: ");
-            char userChar = sc.next().toUpperCase().charAt(0);
-            userPassword.append(userChar);
-
-            if (userChar == generatedPassword.charAt(i)) {
-                score++;
-            }
-            System.out.println();
-        }
-
-        // Show summary
-        System.out.println("Your entered password : " + userPassword);
-        System.out.println("Actual password        : " + generatedPassword);
-    }
-
-    @Override
-    public void end() {
-        System.out.println("\n====== GAME RESULT ======");
-        System.out.println("Your Score: " + score + "/" + generatedPassword.length());
-
-        if (score == generatedPassword.length()) {
-            System.out.println("🎉 Congratulations! You cracked the password!");
-        } else {
-            System.out.println("❌ Incorrect password. Better luck next time!");
-        }
-    }
-}
-
-public class Main {
-
-    public static void main(String[] args) {
-
-        // Updated password sets with better hints
-        String[][] passwordSets = {
-
-                // PASSWORD SET 1 – JAVA
-                {
-                        "JAVA",
-                        "This language runs on a virtual machine and follows the WORA principle.",
-                        "This letter is also the chemical symbol of a radioactive gas used in lighting.",
-                        "The first letter of the name of a widely used version-control system.",
-                        "This letter starts the name of the world’s second-largest ocean."
-                },
-
-                // PASSWORD SET 2 – HTML
-                {
-                        "HTML",
-                        "Foundation of all web pages — it structures content using tags.",
-                        "This letter represents a musical note & also starts the word ‘Hyper’.",
-                        "This letter is the Roman numeral for 50.",
-                        "This letter begins the unit of measurement equal to 1000 meters."
-                },
-
-                // PASSWORD SET 3 – DBMS
-                {
-                        "DBMS",
-                        "Software that stores, modifies, and retrieves large amounts of structured data.",
-                        "The starting letter of the number system used by computers.",
-                        "This letter begins the word describing logical connections between tables.",
-                        "This letter ends the word 'Process'."
-                },
-
-                // PASSWORD SET 4 – CODE
-                {
-                        "CODE",
-                        "What programmers write to instruct computers.",
-                        "The letter that begins all object-oriented terms like Class, Constructor, Compiler.",
-                        "First letter of a structured loop that repeats until a condition becomes false.",
-                        "This letter begins the word ‘Execution’."
-                }
-        };
-
-        // Randomly choose one password set
+    public String getRandomWord() {
         Random random = new Random();
-        int index = random.nextInt(passwordSets.length);
+        return WORDS[random.nextInt(WORDS.length)];
+    }
+}
 
-        String selectedPassword = passwordSets[index][0];
-        String[] selectedHints = {
-                passwordSets[index][1],
-                passwordSets[index][2],
-                passwordSets[index][3],
-                passwordSets[index][4]
-        };
+// Class representing the game state and logic
+class HangmanGame {
+    private String secretWord;
+    private StringBuilder currentGuess;
+    private int remainingAttempts;
+    private Set<Character> guessedLetters;
+    private static final int MAX_ATTEMPTS = 6;
 
-        PasswordGame game = new PasswordGame(selectedPassword, selectedHints);
-        game.start();
-        game.play();
-        game.end();
+    public HangmanGame(String word) {
+        this.secretWord = word.toUpperCase();
+        this.remainingAttempts = MAX_ATTEMPTS;
+        this.guessedLetters = new HashSet<>();
+        this.currentGuess = new StringBuilder();
+
+        for (int i = 0; i < secretWord.length(); i++) {
+            currentGuess.append("_");
+        }
+    }
+
+    /**
+     * Processes a guess.
+     * 
+     * @param letter The letter to guess.
+     * @return 0 if already guessed, 1 if correct guess, 2 if wrong guess.
+     */
+    public int makeGuess(char letter) {
+        letter = Character.toUpperCase(letter);
+        if (guessedLetters.contains(letter)) {
+            return 0; // Already guessed
+        }
+
+        guessedLetters.add(letter);
+        boolean found = false;
+        for (int i = 0; i < secretWord.length(); i++) {
+            if (secretWord.charAt(i) == letter) {
+                currentGuess.setCharAt(i, letter);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            remainingAttempts--;
+            return 2; // Wrong guess
+        }
+
+        return 1; // Correct guess
+    }
+
+    public boolean isWon() {
+        return currentGuess.toString().equals(secretWord);
+    }
+
+    public boolean isLost() {
+        return remainingAttempts <= 0;
+    }
+
+    public String getCurrentDisplay() {
+        StringBuilder display = new StringBuilder();
+        for (int i = 0; i < currentGuess.length(); i++) {
+            display.append(currentGuess.charAt(i)).append(" ");
+        }
+        return display.toString().trim();
+    }
+
+    public int getRemainingAttempts() {
+        return remainingAttempts;
+    }
+
+    public String getSecretWord() {
+        return secretWord;
+    }
+}
+
+// Class responsible for visual display (Hangman ASCII art)
+class GameRenderer {
+    private static final String[] HANGMAN_PICS = {
+            "  +---+\n  |   |\n      |\n      |\n      |\n      |\n=========",
+            "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========",
+            "  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=========",
+            "  +---+\n  |   |\n  O   |\n /|   |\n      |\n      |\n=========",
+            "  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=========",
+            "  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=========",
+            "  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n========="
+    };
+
+    public void render(HangmanGame game) {
+        int index = 6 - game.getRemainingAttempts();
+        System.out.println(HANGMAN_PICS[index]);
+        System.out.println("Word: " + game.getCurrentDisplay());
+        System.out.println("Attempts left: " + game.getRemainingAttempts());
+        System.out.println();
+    }
+}
+
+// Main class to run the game
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        WordProvider wordProvider = new WordProvider();
+        GameRenderer renderer = new GameRenderer();
+
+        System.out.println("Welcome to OOP Hangman!");
+        String word = wordProvider.getRandomWord();
+        HangmanGame game = new HangmanGame(word);
+
+        while (!game.isWon() && !game.isLost()) {
+            renderer.render(game);
+            System.out.print("Enter your guess: ");
+            String input = scanner.nextLine();
+
+            if (input.isEmpty()) {
+                continue;
+            }
+
+            char guess = input.charAt(0);
+            if (!Character.isLetter(guess)) {
+                System.out.println("Please enter a valid letter.");
+                continue;
+            }
+
+            int result = game.makeGuess(guess);
+            if (result == 0) {
+                System.out.println("You already guessed that letter!");
+            } else if (result == 1) {
+                System.out.println("Good job! '" + guess + "' is in the word.");
+            } else {
+                System.out.println("Sorry, '" + guess + "' is not there.");
+            }
+        }
+
+        renderer.render(game);
+        if (game.isWon()) {
+            System.out.println("CONGRATULATIONS! You guessed the word: " + game.getSecretWord());
+        } else {
+            System.out.println("GAME OVER! The word was: " + game.getSecretWord());
+        }
+
+        scanner.close();
     }
 }
