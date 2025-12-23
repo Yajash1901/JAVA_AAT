@@ -148,6 +148,7 @@ class HangmanMain {
         System.out.println(game.won()
                 ? "🎉 You cracked the password: " + game.getWord()
                 : "💀 Game Over! Word was: " + game.getWord());
+                sc.close();
     }
 }
 
@@ -198,6 +199,7 @@ class Minesweeper7 {
                 System.out.println("🎉 You cleared the board!");
                 return;
             }
+            sc.close();
         }
     }
 
