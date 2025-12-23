@@ -12,61 +12,67 @@ public class Minesweeper7 {
 
     public static void main(String[] args) {
 
-        try (Scanner sc = new Scanner(System.in)) {
-            initBoard();
-            placeMines();
-            fillNumbers();
+        Scanner sc = new Scanner(System.in);
+        initBoard();
+        placeMines();
+        fillNumbers();
 
-            System.out.println("=== 7x7 MINESWEEPER ===");
-            System.out.println("Enter row and column (0-6). Example: 2 3");
-            System.out.println("Goal: Reveal all safe cells.\n");
+        System.out.println("════════════════════════════");
+        System.out.println("      💣 MINESWEEPER 7x7     ");
+        System.out.println("════════════════════════════");
+        System.out.println("Enter row and column (0–6)");
+        System.out.println("Example: 2 3");
+        System.out.println("Goal: Reveal all safe cells\n");
 
-            int safeCells = SIZE * SIZE - MINES;
-            int revealedCount = 0;
+        int safeCells = SIZE * SIZE - MINES;
+        int revealedCount = 0;
 
-            while (true) {
+        while (true) {
 
+            printBoard();
+
+            System.out.print("\nYour move (row col): ");
+            int r = sc.nextInt();
+            int c = sc.nextInt();
+
+            if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) {
+                System.out.println("❌ Invalid input! Try again.");
+                continue;
+            }
+
+            if (revealed[r][c]) {
+                System.out.println("⚠️ Cell already revealed!");
+                continue;
+            }
+
+            if (mines[r][c]) {
+                revealAll();
                 printBoard();
+                System.out.println("\n💥 BOOM! You stepped on a mine!");
+                break;
+            }
 
-                System.out.print("\nEnter row and col: ");
-                int r = sc.nextInt();
-                int c = sc.nextInt();
+            revealedCount += reveal(r, c);
 
-                if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) {
-                    System.out.println("Invalid input!");
-                    continue;
-                }
-
-                // stepping on mine
-                if (mines[r][c]) {
-                    revealAll();
-                    printBoard();
-                    System.out.println("\n💥 BOOM! You hit a mine. Game Over!");
-                    break;
-                }
-
-                // reveal cell
-                revealedCount += reveal(r, c);
-
-                // win condition
-                if (revealedCount == safeCells) {
-                    revealAll();
-                    printBoard();
-                    System.out.println("\n🎉 Congratulations! You cleared all safe cells!");
-                    break;
-                }
+            if (revealedCount == safeCells) {
+                revealAll();
+                printBoard();
+                System.out.println("\n🎉 Congratulations! You cleared the board!");
+                break;
             }
         }
+
+        sc.close();
     }
 
-    // initialize board with hidden cells
+    // Initialize board
     static void initBoard() {
         for (int i = 0; i < SIZE; i++)
             for (int j = 0; j < SIZE; j++)
-                board[i][j] = '.';
+                board[i][j] = ' ';
     }
 
-    // randomly place mines
+    // Place mines randomly
     static void placeMines() {
         Random rand = new Random();
         int placed = 0;
@@ -82,7 +88,7 @@ public class Minesweeper7 {
         }
     }
 
-    // Fill numbers based on adjacent mines
+    // Fill numbers
     static void fillNumbers() {
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
@@ -103,23 +109,20 @@ public class Minesweeper7 {
                     }
                 }
 
-                board[r][c] = (count == 0) ? ' ' : (char) ('0' + count);
+                if (count > 0)
+                    board[r][c] = (char) ('0' + count);
             }
         }
     }
 
-    // reveal cell (recursive for blank spaces)
+    // Reveal cell (recursive)
     static int reveal(int r, int c) {
         if (revealed[r][c]) return 0;
 
         revealed[r][c] = true;
-
-        // count this reveal if safe (every revealed safe cell counts once)
         int count = 1;
 
-        // if empty space, reveal neighbors
         if (board[r][c] == ' ') {
-
             for (int i = -1; i <= 1; i++) {
                 for (int j = -1; j <= 1; j++) {
 
@@ -138,33 +141,46 @@ public class Minesweeper7 {
         return count;
     }
 
-    // reveal entire board
+    // Reveal entire board
     static void revealAll() {
         for (int i = 0; i < SIZE; i++)
             for (int j = 0; j < SIZE; j++)
                 revealed[i][j] = true;
     }
 
-    // print board
+    // Print board with better visuals
     static void printBoard() {
-        System.out.print("\n   ");
-        for (int c = 0; c < SIZE; c++) System.out.print(c + " ");
+
+        System.out.print("\n    ");
+        for (int c = 0; c < SIZE; c++) System.out.print(c + "   ");
+        System.out.println();
+
+        System.out.print("  +");
+        for (int i = 0; i < SIZE; i++) System.out.print("---+");
         System.out.println();
 
         for (int r = 0; r < SIZE; r++) {
-            System.out.print(r + ": ");
+            System.out.print(r + " |");
+
             for (int c = 0; c < SIZE; c++) {
 
                 if (!revealed[r][c]) {
-                    System.out.print(". ");
+                    System.out.print(" □ |");
                 }
                 else if (mines[r][c]) {
-                    System.out.print("* ");
+                    System.out.print(" * |");
+                }
+                else if (board[r][c] == ' ') {
+                    System.out.print("   |");
                 }
                 else {
-                    System.out.print(board[r][c] + " ");
+                    System.out.print(" " + board[r][c] + " |");
                 }
             }
+            System.out.println();
+
+            System.out.print("  +");
+            for (int i = 0; i < SIZE; i++) System.out.print("---+");
             System.out.println();
         }
     }
