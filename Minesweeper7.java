@@ -12,52 +12,51 @@ public class Minesweeper7 {
 
     public static void main(String[] args) {
 
-        Scanner sc = new Scanner(System.in);
-        initBoard();
-        placeMines();
-        fillNumbers();
+        try (Scanner sc = new Scanner(System.in)) {
+            initBoard();
+            placeMines();
+            fillNumbers();
 
-        System.out.println("=== 7x7 MINESWEEPER ===");
-        System.out.println("Enter row and column (0-6). Example: 2 3");
-        System.out.println("Goal: Reveal all safe cells.\n");
+            System.out.println("=== 7x7 MINESWEEPER ===");
+            System.out.println("Enter row and column (0-6). Example: 2 3");
+            System.out.println("Goal: Reveal all safe cells.\n");
 
-        int safeCells = SIZE * SIZE - MINES;
-        int revealedCount = 0;
+            int safeCells = SIZE * SIZE - MINES;
+            int revealedCount = 0;
 
-        while (true) {
+            while (true) {
 
-            printBoard();
-
-            System.out.print("\nEnter row and col: ");
-            int r = sc.nextInt();
-            int c = sc.nextInt();
-
-            if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) {
-                System.out.println("Invalid input!");
-                continue;
-            }
-
-            // stepping on mine
-            if (mines[r][c]) {
-                revealAll();
                 printBoard();
-                System.out.println("\n💥 BOOM! You hit a mine. Game Over!");
-                break;
-            }
 
-            // reveal cell
-            revealedCount += reveal(r, c);
+                System.out.print("\nEnter row and col: ");
+                int r = sc.nextInt();
+                int c = sc.nextInt();
 
-            // win condition
-            if (revealedCount == safeCells) {
-                revealAll();
-                printBoard();
-                System.out.println("\n🎉 Congratulations! You cleared all safe cells!");
-                break;
+                if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) {
+                    System.out.println("Invalid input!");
+                    continue;
+                }
+
+                // stepping on mine
+                if (mines[r][c]) {
+                    revealAll();
+                    printBoard();
+                    System.out.println("\n💥 BOOM! You hit a mine. Game Over!");
+                    break;
+                }
+
+                // reveal cell
+                revealedCount += reveal(r, c);
+
+                // win condition
+                if (revealedCount == safeCells) {
+                    revealAll();
+                    printBoard();
+                    System.out.println("\n🎉 Congratulations! You cleared all safe cells!");
+                    break;
+                }
             }
         }
-
-        sc.close();
     }
 
     // initialize board with hidden cells
